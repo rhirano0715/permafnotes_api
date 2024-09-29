@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using PermafnotesApi.DbContexts;
+using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Graph.ExternalConnectors;
 
 namespace PermafnotesApi
 {
@@ -14,7 +17,10 @@ namespace PermafnotesApi
             builder.Services.AddDbContext<PermafnotesDbContext>(options =>
                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            Console.WriteLine("DefaultConnection: " + builder.Configuration.GetConnectionString("DefaultConnection"));
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+            builder.Services.AddAuthorization();
+
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -32,8 +38,14 @@ namespace PermafnotesApi
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.UseRouting();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.MapControllers();
 
