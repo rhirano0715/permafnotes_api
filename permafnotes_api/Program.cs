@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using PermafnotesApi.DbContexts;
 
-namespace permafnotes_api
+namespace PermafnotesApi
 {
     public class Program
     {
@@ -8,6 +10,9 @@ namespace permafnotes_api
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.AddDbContext<PermafnotesDbContext>(options =>
+               options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

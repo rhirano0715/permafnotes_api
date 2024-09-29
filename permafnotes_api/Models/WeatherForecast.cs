@@ -1,4 +1,4 @@
-namespace permafnotes_api
+namespace PermafnotesApi.Models
 {
     public class WeatherForecast
     {

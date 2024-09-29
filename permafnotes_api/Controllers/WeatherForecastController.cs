@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using PermafnotesApi.Models;
 
-namespace permafnotes_api.Controllers
+namespace PermafnotesApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
