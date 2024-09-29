@@ -1,12 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PermafnotesApi.Controllers;
 
 namespace PermafnotesApi.DbContexts
 {
     public class PermafnotesDbContext : DbContext
     {
-        public PermafnotesDbContext(DbContextOptions<PermafnotesDbContext> options)
+        private readonly ILogger<PermafnotesDbContext> _logger;
+
+        public PermafnotesDbContext(DbContextOptions<PermafnotesDbContext> options, ILogger<PermafnotesDbContext> logger)
             : base(options)
         {
+            _logger = logger;
+            _logger.LogInformation("PermafnotesDbContext created");
         }
         public DbSet<Note> Notes { get; set; } = null!;
     }

@@ -19,7 +19,7 @@ namespace PermafnotesApi.Controllers
         [HttpGet(Name = "Note")]
         public IEnumerable<Note> Get()
         {
-            _logger.LogDebug("Getting notes");
+            _logger.LogInformation("Getting notes");
             return _context.Notes;
         }
     }
