@@ -17,10 +17,10 @@ namespace PermafnotesApi.Controllers
         }
 
         [HttpGet(Name = "Note")]
-        public IEnumerable<Note> Get()
+        public IEnumerable<NoteWithTag> Get()
         {
             _logger.LogInformation("Getting notes");
-            return _context.Notes;
+            return _context.FetchNoteWithTag();
         }
     }
 }
