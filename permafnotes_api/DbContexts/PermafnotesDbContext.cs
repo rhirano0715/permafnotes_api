@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using PermafnotesApi.Controllers;
 
 namespace PermafnotesApi.DbContexts
@@ -22,6 +24,31 @@ namespace PermafnotesApi.DbContexts
         {
             modelBuilder.Entity<Note_Tag>()
                 .HasKey(nt => new { nt.Note_Id, nt.Tag_Id });
+        }
+
+        public NoteWithTag SelectNoteWithTagByNoteId(long noteId)
+        {
+            var note = Notes.Find(noteId);
+            if (note == null)
+            {
+                return null;
+            }
+            var note_tags = Notes_Tags.Where(nt => nt.Note_Id == noteId).ToList();
+            var tags = Tags.ToList();
+            var tagsForNote = note_tags
+                .Select(nt => tags.First(t => t.Id == nt.Tag_Id))
+                .ToList();
+            return new NoteWithTag
+            {
+                Id = note.Id,
+                Title = note.Title,
+                Reference = note.Reference,
+                Source = note.Source,
+                Memo = note.Memo,
+                Created_At = note.Created_At,
+                Updated_At = note.Updated_At,
+                Tags = tagsForNote
+            };
         }
 
         public IEnumerable<NoteWithTag> FetchNoteWithTag()
@@ -50,6 +77,92 @@ namespace PermafnotesApi.DbContexts
             return noteWithTags;
         }
 
+        public NoteWithTag AddNoteAndTags(NoteWithTag note)
+        {
+            var newNote = new Note
+            {
+                Title = note.Title,
+                Reference = note.Reference,
+                Source = note.Source,
+                Memo = note.Memo,
+                Created_At = DateTimeOffset.Now
+            };
+            Notes.Add(newNote);
+            SaveChanges();
+            var newNoteId = newNote.Id;
+
+            foreach (var tag in note.Tags)
+            {
+                var existsTag = Tags.FirstOrDefault(t => t.Name == tag.Name);
+                if (existsTag == null)
+                {
+                    existsTag = new Tag
+                    {
+                        Name = tag.Name,
+                        Description = tag.Description
+                    };
+                    Tags.Add(existsTag);
+                    SaveChanges();
+                }
+
+                var newTagId = existsTag.Id;
+                var newNoteTag = new Note_Tag
+                {
+                    Note_Id = newNoteId,
+                    Tag_Id = newTagId
+                };
+                Notes_Tags.Add(newNoteTag);
+                SaveChanges();
+            }
+
+            return SelectNoteWithTagByNoteId(newNoteId);
+        }
+
+        public NoteWithTag UpdateNoteAndTags(NoteWithTag note)
+        {
+            var existingNote = Notes.Find(note.Id);
+            if (existingNote == null)
+            {
+                return null;
+            }
+            existingNote.Title = note.Title;
+            existingNote.Reference = note.Reference;
+            existingNote.Source = note.Source;
+            existingNote.Memo = note.Memo;
+            SaveChanges();
+
+            var note_tags = Notes_Tags.Where(nt => nt.Note_Id == note.Id).ToList();
+            foreach (var note_tag in note_tags)
+            {
+                Notes_Tags.Remove(note_tag);
+            }
+            SaveChanges();
+
+            foreach (var tag in note.Tags)
+            {
+                var existsTag = Tags.FirstOrDefault(t => t.Name == tag.Name);
+                if (existsTag == null)
+                {
+                    existsTag = new Tag
+                    {
+                        Name = tag.Name,
+                        Description = tag.Description
+                    };
+                    Tags.Add(existsTag);
+                    SaveChanges();
+                }
+                var newTagId = existsTag.Id;
+                var newNoteTag = new Note_Tag
+                {
+                    Note_Id = note.Id,
+                    Tag_Id = newTagId
+                };
+                Notes_Tags.Add(newNoteTag);
+                SaveChanges();
+            }
+ 
+            return SelectNoteWithTagByNoteId(note.Id);
+        }
     }
 
     public class NoteWithTag
@@ -86,5 +199,4 @@ namespace PermafnotesApi.DbContexts
         public long Note_Id { get; set; }
         public long Tag_Id { get; set; }
     }
-
 }
