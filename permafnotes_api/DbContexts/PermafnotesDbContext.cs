@@ -26,6 +26,11 @@ namespace PermafnotesApi.DbContexts
                 .HasKey(nt => new { nt.Note_Id, nt.Tag_Id });
         }
 
+        public IEnumerable<Tag> FetchTags()
+        {
+            return Tags.ToList();
+        }
+
         public NoteWithTag SelectNoteWithTagByNoteId(long noteId)
         {
             var note = Notes.Find(noteId);
